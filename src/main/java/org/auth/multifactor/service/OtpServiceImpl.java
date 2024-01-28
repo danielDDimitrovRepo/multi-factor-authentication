@@ -4,17 +4,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.auth.multifactor.model.Otp;
 import org.auth.multifactor.repository.OtpRepository;
-import org.auth.multifactor.service.enumeration.Status;
+import org.auth.multifactor.service.enumeration.OtpValidationStatus;
 import org.auth.multifactor.util.EncryptionUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static org.auth.multifactor.service.enumeration.Status.*;
+import static java.time.ZoneOffset.UTC;
+import static org.auth.multifactor.service.enumeration.OtpValidationStatus.*;
 
 @Slf4j
 @Service
@@ -29,7 +29,7 @@ public class OtpServiceImpl implements OtpService {
     private final OutgoingMessageService emailSender;
 
     @Override
-    public void createOtp(String email) {
+    public void create(String email) {
         byte[] salt = encryptionUtil.generateSalt();
         String password = encryptionUtil.generateOneTimePassword();
 
@@ -37,7 +37,7 @@ public class OtpServiceImpl implements OtpService {
         otp.setEmail(email);
         otp.setOtp(encryptionUtil.generateHash(password, salt));
         otp.setSalt(salt);
-        otp.setExpirationDateTime(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(otpTtlMinutes));
+        otp.setExpirationDateTime(LocalDateTime.now(UTC).plusMinutes(otpTtlMinutes));
 
         otpRepository.save(otp);
         emailSender.sendMessage(email, "Auth Code", password);
@@ -46,7 +46,7 @@ public class OtpServiceImpl implements OtpService {
     }
 
     @Override
-    public Status validate(String email, String otp) {
+    public OtpValidationStatus validate(String email, String otp) {
         Optional<Otp> dbResult = otpRepository.findTopByEmailOrderByExpirationDateTimeDesc(email);
 
         if (dbResult.isEmpty()) {
@@ -60,9 +60,14 @@ public class OtpServiceImpl implements OtpService {
             return INVALID;
         }
 
-        if (result.getExpirationDateTime().isBefore(LocalDateTime.now(ZoneOffset.UTC))) {
+        if (result.isUsed()) {
+            return USED;
+        } else if (result.getExpirationDateTime().isBefore(LocalDateTime.now(UTC))) {
             return EXPIRED;
         }
+
+        result.setUsed(true);
+        otpRepository.save(result);
 
         return VALID;
     }

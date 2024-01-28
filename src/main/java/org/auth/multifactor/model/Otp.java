@@ -8,9 +8,9 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@NoArgsConstructor
 @Getter
 @Setter
+@NoArgsConstructor
 public class Otp {
 
     @Id
@@ -23,5 +23,6 @@ public class Otp {
     private byte[] salt;
     @Column(columnDefinition = "TIMESTAMP")
     private LocalDateTime expirationDateTime;
+    private boolean isUsed;
 
 }

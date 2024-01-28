@@ -17,7 +17,6 @@ public class SmtpConfig {
         mailSender.setPort(25);
 
         Properties props = mailSender.getJavaMailProperties();
-        props.put("mail.debug", "true");
 
         return mailSender;
     }

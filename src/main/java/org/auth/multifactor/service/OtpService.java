@@ -1,14 +1,11 @@
 package org.auth.multifactor.service;
 
-import org.auth.multifactor.model.Otp;
-import org.auth.multifactor.service.enumeration.Status;
-
-import java.util.Optional;
+import org.auth.multifactor.service.enumeration.OtpValidationStatus;
 
 public interface OtpService {
 
-    void createOtp(String email);
+    void create(String email);
 
-    Status validate(String email, String otp);
+    OtpValidationStatus validate(String email, String otp);
 
 }

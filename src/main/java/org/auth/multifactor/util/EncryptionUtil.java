@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -13,14 +12,6 @@ import java.security.spec.KeySpec;
 
 @Component
 public class EncryptionUtil {
-
-//    public static void main(String[] args) {
-//        EncryptionUtil util = new EncryptionUtil();
-//
-//        byte[] salt = util.generateSalt();
-//        String password = util.generateOneTimePassword();
-//        System.out.print(password);
-//    }
 
     public byte[] generateSalt() {
         byte[] salt = new byte[16];
