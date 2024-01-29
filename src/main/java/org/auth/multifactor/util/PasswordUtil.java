@@ -11,7 +11,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 
 @Component
-public class EncryptionUtil {
+public class PasswordUtil {
 
     public byte[] generateSalt() {
         byte[] salt = new byte[16];

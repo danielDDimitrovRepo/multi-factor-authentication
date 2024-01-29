@@ -1,11 +1,8 @@
 spring:
-  datasource:
-    driverClassName: com.mysql.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/multi-factor-authentication-db
-    username: otp
-    password: password
-  jpa:
-    hibernate.ddl-auto: update
-    generate-ddl: true
-    show-sql: true
-    database-platform: org.hibernate.dialect.MySQLDialect
+  data:
+    mongodb:
+      uri: ${SPRING_DATASOURCE_URL:mongodb://root:password@localhost:27017/}
+      database: ${MONGO_INITDB_DATABASE:otp-db}
+  mail:
+    host: ${MAILDEV_HOST:localhost}
+    port: ${MAILDEV_SMTP_PORT:1025}

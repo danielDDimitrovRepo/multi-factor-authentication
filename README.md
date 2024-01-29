@@ -4,20 +4,18 @@
 * Set project SDK: Java 17.0.9 Amazon Corretto
 * Install/Enable Lombok plugin in your IDE
 * For IntelliJ - Enable annotation processing
+* >mvn package
+* >docker image build -t multi-factor-authentication:latest .
 * >docker-compose up -d
-
-NOTE: only MySQL and a GUI are managed through Docker, since the application wasn't able to connect to MySQL within the 
-Docker network
-
-* Compile and run the application: 
->mvn spring-boot:run -Dspring-boot.run.profiles=docker-compose
  
 ## Sending the OTP request
-* >curl -X POST http://localhost:8080/otp/create -H "Content-Type: application/x-www-form-urlencoded" -d "email=value1"
+* >curl -X POST http://localhost:8080/otp/create -H "Content-Type: application/x-www-form-urlencoded" -d "email=[email]"
 
 ## Obtaining the One Time Password:    
-To access the OTP from an email inbox, go to the test inbox at
-https://www.wpoven.com/tools/free-smtp-server-for-testing and enter the same email used for generating the One Time Password
+* To access the OTP from an email inbox, go to the test inbox at http://localhost:8082/
 
 ## Verifying the OTP
-* >curl -X POST http://localhost:8080/otp/validate -H "Content-Type: application/x-www-form-urlencoded" -d "email=asdf@asdf.com&otp=041069"
+* >curl -X POST http://localhost:8080/otp/validate -H "Content-Type: application/x-www-form-urlencoded" -d "email=[email]&otp=[otp]"
+ 
+## Inspecting the Database
+* You can inspect at any time at http://localhost:8081/ - user: root, pass: password

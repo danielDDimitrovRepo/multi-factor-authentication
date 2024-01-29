@@ -1,27 +1,24 @@
 package org.auth.multifactor.model;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.time.LocalDateTime;
 
-@Entity
+@Document(collection = "one_time_password")
 @Getter
 @Setter
 @NoArgsConstructor
 public class Otp {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @MongoId
+    private String id;
     private String email;
-    @Column(name = "one_time_password", columnDefinition = "BLOB")
     private byte[] otp;
-    @Column(columnDefinition = "BLOB")
     private byte[] salt;
-    @Column(columnDefinition = "TIMESTAMP")
     private LocalDateTime expirationDateTime;
     private boolean isUsed;
 

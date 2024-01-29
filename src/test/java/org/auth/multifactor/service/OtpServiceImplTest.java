@@ -3,7 +3,7 @@ package org.auth.multifactor.service;
 import org.auth.multifactor.model.Otp;
 import org.auth.multifactor.repository.OtpRepository;
 import org.auth.multifactor.service.enumeration.OtpValidationStatus;
-import org.auth.multifactor.util.EncryptionUtil;
+import org.auth.multifactor.util.PasswordUtil;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -21,10 +21,11 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.auth.multifactor.service.enumeration.OtpValidationStatus.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
-@ActiveProfiles(profiles = "test")
+@ActiveProfiles("test")
 class OtpServiceImplTest {
 
     @MockBean
@@ -32,7 +33,7 @@ class OtpServiceImplTest {
     @MockBean
     private OutgoingMessageService emailSender;
     @SpyBean
-    private EncryptionUtil encryptionUtil;
+    private PasswordUtil passwordUtil;
 
     @Captor
     private ArgumentCaptor<String> stringCaptor;
@@ -44,13 +45,13 @@ class OtpServiceImplTest {
     @Autowired
     private OtpServiceImpl otpServiceImpl;
 
-    private EncryptionUtil testEncryptionUtil = new EncryptionUtil();
+    private PasswordUtil testPasswordUtil = new PasswordUtil();
     private String mockEmail = "junit@junit.com";
     private String mockPass = "123456";
 
     @Test
     void create() {
-        when(encryptionUtil.generateOneTimePassword()).thenReturn(mockPass);
+        when(passwordUtil.generateOneTimePassword()).thenReturn(mockPass);
 
         otpServiceImpl.create(mockEmail);
 
@@ -71,7 +72,7 @@ class OtpServiceImplTest {
     void validate() {
         Otp mockOtp = buildMockOtp();
 
-        when(encryptionUtil.generateOneTimePassword()).thenReturn(mockPass);
+        when(passwordUtil.generateOneTimePassword()).thenReturn(mockPass);
         when(otpRepository.findTopByEmailOrderByExpirationDateTimeDesc(anyString())).thenReturn(Optional.of(mockOtp));
 
         OtpValidationStatus actualStatus = otpServiceImpl.validate(mockEmail, mockPass);
@@ -81,7 +82,7 @@ class OtpServiceImplTest {
         verify(otpRepository).findTopByEmailOrderByExpirationDateTimeDesc(stringCaptor.capture());
         assertThat(stringCaptor.getValue()).isEqualTo(mockEmail);
 
-        verify(encryptionUtil).generateHash(stringCaptor.capture(), byteCaptor.capture());
+        verify(passwordUtil).generateHash(stringCaptor.capture(), byteCaptor.capture());
         assertThat(stringCaptor.getValue()).isEqualTo(mockPass);
         assertThat(byteCaptor.getValue()).isEqualTo(mockOtp.getSalt());
 
@@ -104,7 +105,7 @@ class OtpServiceImplTest {
     @Test
     void validate_DatabaseOtpIsInvalid_InvalidReturned() {
         Otp mockOtp = buildMockOtp();
-        mockOtp.setOtp(testEncryptionUtil.generateHash("invalid", mockOtp.getSalt()));
+        mockOtp.setOtp(testPasswordUtil.generateHash("invalid", mockOtp.getSalt()));
 
         when(otpRepository.findTopByEmailOrderByExpirationDateTimeDesc(anyString())).thenReturn(Optional.of(mockOtp));
 
@@ -140,10 +141,9 @@ class OtpServiceImplTest {
 
     private Otp buildMockOtp() {
         Otp mockOtp = new Otp();
-        mockOtp.setId(1L);
         mockOtp.setEmail(mockEmail);
-        mockOtp.setSalt(testEncryptionUtil.generateSalt());
-        mockOtp.setOtp(testEncryptionUtil.generateHash(mockPass, mockOtp.getSalt()));
+        mockOtp.setSalt(testPasswordUtil.generateSalt());
+        mockOtp.setOtp(testPasswordUtil.generateHash(mockPass, mockOtp.getSalt()));
         mockOtp.setExpirationDateTime(LocalDateTime.now(UTC).plusMinutes(3));
         mockOtp.setUsed(false);
         return mockOtp;

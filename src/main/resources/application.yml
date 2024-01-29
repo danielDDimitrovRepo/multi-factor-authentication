@@ -1,2 +1,4 @@
 application:
   otp-ttl-minutes: 5
+  email:
+    from: noreply@madeupdomain.com

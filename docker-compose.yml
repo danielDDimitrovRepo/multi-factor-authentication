@@ -1,39 +1,52 @@
 version: "3.1"
 
 services:
-  db:
-    image: mysql:8.3
-    command: --default-authentication-plugin=mysql_native_password
+  mongo:
+    image: mongo
     restart: always
-#    network_mode: "host"
-    ports:
-      - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: multi-factor-authentication-db
-      MYSQL_USER: otp
-      MYSQL_PASSWORD: password
-    healthcheck:
-      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
-      timeout: 20s
-      retries: 5
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: otp-db
 
-  adminer:
-    image: adminer
+  mongo-express:
+    image: mongo-express
     restart: always
     ports:
-      - "8081:8080"
+      - "8081:8081"
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: root
+      ME_CONFIG_BASICAUTH_PASSWORD: password
+      ME_CONFIG_MONGODB_URL: mongodb://root:password@mongo:27017/
     depends_on:
-      - db
+      mongo:
+        condition: service_started
 
-#  multi-factor-authentication:
-#    build:
-#      context: ./
-#      dockerfile: Dockerfile
-#    ports:
-#      - "8080:8080"
-#    depends_on:
-#      db:
-#        condition: service_healthy
-#    environment:
-#      - "SPRING_PROFILES_ACTIVE=docker-compose"
+  maildev:
+    image: maildev/maildev
+    restart: always
+    environment:
+      MAILDEV_HOST: maildev
+      MAILDEV_SMTP_PORT: 1025
+      MAILDEV_WEB_PORT: 1080
+    ports:
+      - "8082:1080"
+
+  multi-factor-authentication:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker-compose
+      SPRING_DATASOURCE_URL: mongodb://root:password@mongo:27017/
+      SPRING_DATASOURCE_DATABASE: otp-db
+      MAILDEV_HOST: maildev
+      MAILDEV_SMTP_PORT: 1025
+    depends_on:
+      mongo:
+        condition: service_started
+      maildev:
+        condition: service_started
