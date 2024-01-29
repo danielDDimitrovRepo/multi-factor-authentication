@@ -5,7 +5,6 @@
 * Install/Enable Lombok plugin in your IDE
 * For IntelliJ - Enable annotation processing
 * >mvn package
-* >docker image build -t multi-factor-authentication:latest .
 * >docker-compose up -d
  
 ## Sending the OTP request
